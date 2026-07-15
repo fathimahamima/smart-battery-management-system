@@ -1,13 +1,16 @@
 #include "battery.h"
+#include "safety.h"
 
 void setup() {
   Serial.begin(115200);
+  pinMode(RELAY_PIN, OUTPUT);
+  digitalWrite(RELAY_PIN, HIGH);   // Relay ON initially
 }
 
 void loop() {
 
   processBattery();
-
+  processSafety();
   for (int i = 0; i < NUM_CELLS; i++) {
     Serial.print("Cell ");
     Serial.print(i + 1);
