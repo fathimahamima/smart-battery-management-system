@@ -42,14 +42,20 @@ else {
 
     case SAFE:
       digitalWrite(RELAY_PIN, HIGH);
+      digitalWrite(LED_PIN, LOW);
+      noTone(BUZZER_PIN);
       break;
 
     case WEAK_CELL:
       digitalWrite(RELAY_PIN, LOW);
+      digitalWrite(LED_PIN, HIGH);
+      tone(BUZZER_PIN, 1000);   // 1000 Hz
       Serial.println("WARNING: Weak Cell Detected");
       break;
     case OVERVOLTAGE:
       digitalWrite(RELAY_PIN, LOW);
+      digitalWrite(LED_PIN, HIGH);
+      tone(BUZZER_PIN, 1000);   // 1000 Hz
       Serial.println("WARNING: Overvoltage Detected");
       break;
 
