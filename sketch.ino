@@ -1,8 +1,18 @@
 #include "battery.h"
 #include "safety.h"
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 void setup() {
   Serial.begin(115200);
+  lcd.init();
+  lcd.backlight();
+  lcd.setCursor(0, 0);
+  lcd.print("Battery System");
+
+  lcd.setCursor(0, 1);
+  lcd.print("Starting...");
   pinMode(RELAY_PIN, OUTPUT);
   digitalWrite(RELAY_PIN, HIGH);   // Relay ON initially
   pinMode(LED_PIN, OUTPUT);
@@ -15,6 +25,33 @@ void loop() {
 
   processBattery();
   processSafety();
+  lcd.clear();
+
+lcd.setCursor(0, 0);
+lcd.print("Pack:");
+lcd.print(battery.packVoltage, 2);
+lcd.print("V");
+
+lcd.setCursor(0, 1);
+
+switch (safetyState) {
+
+  case SAFE:
+    lcd.print("SAFE");
+    break;
+
+  case WEAK_CELL:
+    lcd.print("WEAK CELL");
+    break;
+
+  case OVERVOLTAGE:
+    lcd.print("OVERVOLTAGE");
+    break;
+
+  default:
+    lcd.print("UNKNOWN");
+    break;
+}
   for (int i = 0; i < NUM_CELLS; i++) {
     Serial.print("Cell ");
     Serial.print(i + 1);
