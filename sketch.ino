@@ -3,7 +3,8 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 LiquidCrystal_I2C lcd(0x27, 16, 2);
-
+unsigned long previousUpdate = 0;
+const unsigned long UPDATE_INTERVAL = 1000; // 1 second
 void setup() {
   Serial.begin(115200);
   lcd.init();
@@ -23,54 +24,69 @@ void setup() {
 
 void loop() {
 
-  processBattery();
-  processSafety();
-  lcd.clear();
+  unsigned long currentMillis = millis();
 
-lcd.setCursor(0, 0);
-lcd.print("Pack:");
-lcd.print(battery.packVoltage, 2);
-lcd.print("V");
+  if (currentMillis - previousUpdate >= UPDATE_INTERVAL) {
 
-lcd.setCursor(0, 1);
+    previousUpdate = currentMillis;
 
-switch (safetyState) {
+    processBattery();
+    processSafety();
 
-  case SAFE:
-    lcd.print("SAFE");
-    break;
+    lcd.clear();
 
-  case WEAK_CELL:
-    lcd.print("WEAK CELL");
-    break;
+    lcd.setCursor(0, 0);
+    lcd.print("Pack:");
+    lcd.print(battery.packVoltage, 2);
+    lcd.print("V");
 
-  case OVERVOLTAGE:
-    lcd.print("OVERVOLTAGE");
-    break;
+    lcd.setCursor(0, 1);
 
-  default:
-    lcd.print("UNKNOWN");
-    break;
-}
-  for (int i = 0; i < NUM_CELLS; i++) {
-    Serial.print("Cell ");
-    Serial.print(i + 1);
-    Serial.print(": ");
-    Serial.print(battery.cellVoltage[i], 2);
+    switch (safetyState) {
+
+      case SAFE:
+        lcd.print("SAFE");
+        break;
+
+      case WEAK_CELL:
+        lcd.print("WEAK CELL");
+        break;
+
+      case OVERVOLTAGE:
+        lcd.print("OVERVOLTAGE");
+        break;
+
+      case SENSOR_FAULT:
+        lcd.print("SENSOR FAULT");
+        break;
+
+      case RAPID_FLUCTUATION:
+        lcd.print("RAPID CHANGE");
+        break;
+
+      default:
+        lcd.print("UNKNOWN");
+        break;
+    }
+
+    for (int i = 0; i < NUM_CELLS; i++) {
+      Serial.print("Cell ");
+      Serial.print(i + 1);
+      Serial.print(": ");
+      Serial.print(battery.cellVoltage[i], 2);
+      Serial.println(" V");
+    }
+
+    Serial.println();
+
+    Serial.print("Pack Voltage: ");
+    Serial.print(battery.packVoltage, 2);
     Serial.println(" V");
+
+    Serial.print("Average Voltage: ");
+    Serial.print(battery.averageVoltage, 2);
+    Serial.println(" V");
+
+    Serial.println("----------------------");
   }
-
-  Serial.println();
-
-  Serial.print("Pack Voltage: ");
-  Serial.print(battery.packVoltage, 2);
-  Serial.println(" V");
-
-  Serial.print("Average Voltage: ");
-  Serial.print(battery.averageVoltage, 2);
-  Serial.println(" V");
-
-  Serial.println("----------------------");
-
-  delay(1000);
 }

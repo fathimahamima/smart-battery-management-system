@@ -1,6 +1,9 @@
 #include <Arduino.h>
 #include "safety.h"
 SafetyState safetyState = SAFE;
+unsigned long faultStartTime = 0;
+const unsigned long RECOVERY_DELAY = 3000; // 3 seconds
+float previousVoltage[NUM_CELLS] = {0};
 
 bool hasWeakCell() {
 
@@ -26,18 +29,64 @@ bool hasOverVoltage() {
 
   return false;
 }
+bool hasSensorFault() {
+
+  for (int i = 0; i < NUM_CELLS; i++) {
+
+    if (battery.cellVoltage[i] < 0.5 ||
+        battery.cellVoltage[i] > 4.3) {
+
+      return true;
+    }
+
+  }
+
+  return false;
+}
+bool hasRapidFluctuation() {
+
+  for (int i = 0; i < NUM_CELLS; i++) {
+
+    float difference = abs(battery.cellVoltage[i] - previousVoltage[i]);
+
+    previousVoltage[i] = battery.cellVoltage[i];
+
+    if (difference > RAPID_CHANGE_THRESHOLD) {
+      return true;
+    }
+  }
+
+  return false;
+}
 void processSafety() {
 
-  if (hasOverVoltage()) {
+if (hasSensorFault()) {
+    faultStartTime = 0;
+    safetyState = SENSOR_FAULT;
+}
+else if (hasRapidFluctuation()) {
+    faultStartTime = 0;
+    safetyState = RAPID_FLUCTUATION;
+}
+else if (hasOverVoltage()) {
+    faultStartTime = 0;
     safetyState = OVERVOLTAGE;
 }
 else if (hasWeakCell()) {
+    faultStartTime = 0;
     safetyState = WEAK_CELL;
 }
 else {
-    safetyState = SAFE;
-}
 
+    if (faultStartTime == 0) {
+        faultStartTime = millis();
+    }
+
+    if (millis() - faultStartTime >= RECOVERY_DELAY) {
+        safetyState = SAFE;
+    }
+
+}
   switch (safetyState) {
 
     case SAFE:
@@ -57,6 +106,21 @@ else {
       digitalWrite(LED_PIN, HIGH);
       tone(BUZZER_PIN, 1000);   // 1000 Hz
       Serial.println("WARNING: Overvoltage Detected");
+      break;
+    case SENSOR_FAULT:
+      digitalWrite(RELAY_PIN, LOW);
+      digitalWrite(LED_PIN, HIGH);
+      tone(BUZZER_PIN, 1500);
+
+      Serial.println("WARNING: Sensor Fault");
+    case RAPID_FLUCTUATION:
+      digitalWrite(RELAY_PIN, LOW);
+      digitalWrite(LED_PIN, HIGH);
+      tone(BUZZER_PIN, 1200);
+
+      Serial.println("WARNING: Rapid Voltage Fluctuation");
+      break;
+
       break;
 
     default:
