@@ -36,13 +36,41 @@ if (currentMillis - previousScreenChange >= SCREEN_INTERVAL) {
 
   lcd.clear();
 
+  // Fault Priority Override
+if (safetyState != SAFE) {
+
+  lcd.clear();
+
   lcd.setCursor(0, 0);
-  lcd.print("Pack:");
-  lcd.print(battery.packVoltage, 2);
-  lcd.print("V");
+  lcd.print("!! WARNING !!");
 
   lcd.setCursor(0, 1);
 
+  switch (safetyState) {
+
+    case WEAK_CELL:
+      lcd.print("WEAK CELL");
+      break;
+
+    case OVERVOLTAGE:
+      lcd.print("OVERVOLTAGE");
+      break;
+
+    case SENSOR_FAULT:
+      lcd.print("SENSOR FAULT");
+      break;
+
+    case RAPID_FLUCTUATION:
+      lcd.print("RAPID CHANGE");
+      break;
+
+    default:
+      lcd.print("FAULT");
+      break;
+  }
+
+  return;
+}
   switch (currentScreen) {
 
   case OVERVIEW_SCREEN:
@@ -100,7 +128,74 @@ if (currentMillis - previousScreenChange >= SCREEN_INTERVAL) {
     lcd.print(battery.cellVoltage[3],1);
 
     break;
+  case ANALYTICS_SCREEN:
 
+    lcd.setCursor(0,0);
+    lcd.print("Avg:");
+    lcd.print(battery.averageVoltage,2);
+    lcd.print("V");
+
+    lcd.setCursor(0,1);
+    lcd.print("Imb:");
+    lcd.print(battery.imbalance,1);
+    lcd.print("%");
+
+    break;
+  case PROTECTION_SCREEN:
+
+  lcd.setCursor(0,0);
+  lcd.print("Relay: ");
+
+  if (safetyState == SAFE)
+  lcd.print("ON ");
+  else
+  lcd.print("OFF");
+
+  lcd.setCursor(0,1);
+  lcd.print("State:");
+
+  switch(safetyState){
+
+    case SAFE:
+      lcd.print("SAFE");
+      break;
+
+    case WEAK_CELL:
+      lcd.print("WEAK");
+      break;
+
+    case OVERVOLTAGE:
+      lcd.print("OV");
+      break;
+
+    case SENSOR_FAULT:
+      lcd.print("SENSOR");
+      break;
+
+    case RAPID_FLUCTUATION:
+      lcd.print("RAPID");
+      break;
+
+    default:
+      lcd.print("UNKNOWN");
+  }
+
+  break;
+
+  
+  case DIAGNOSTIC_SCREEN:
+
+  lcd.setCursor(0, 0);
+  lcd.print("Mode:NORMAL");
+
+  lcd.setCursor(0, 1);
+
+  if (safetyState == SAFE)
+    lcd.print("No Faults");
+  else
+    lcd.print("Fault Active");
+
+  break;
   default:
     lcd.setCursor(0,0);
     lcd.print("Coming Soon");
