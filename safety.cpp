@@ -4,7 +4,7 @@ SafetyState safetyState = SAFE;
 unsigned long faultStartTime = 0;
 const unsigned long RECOVERY_DELAY = 3000; // 3 seconds
 float previousVoltage[NUM_CELLS] = {0};
-
+bool firstReading = true;
 bool hasWeakCell() {
 
   for (int i = 0; i < NUM_CELLS; i++) {
@@ -44,6 +44,17 @@ bool hasSensorFault() {
   return false;
 }
 bool hasRapidFluctuation() {
+
+  // Store the first valid readings and don't trigger a fault
+  if (firstReading) {
+
+    for (int i = 0; i < NUM_CELLS; i++) {
+      previousVoltage[i] = battery.cellVoltage[i];
+    }
+
+    firstReading = false;
+    return false;
+  }
 
   for (int i = 0; i < NUM_CELLS; i++) {
 
