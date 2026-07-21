@@ -1,6 +1,7 @@
 #include "battery.h"
 #include "safety.h"
 #include "display.h"
+#include "runtime.h"
 unsigned long previousUpdate = 0;
 const unsigned long UPDATE_INTERVAL = 1000; // 1 second
 void setup() {
@@ -24,6 +25,7 @@ void loop() {
 
     processBattery();
     processSafety();
+    processRuntime();
 
     updateDisplay();
 

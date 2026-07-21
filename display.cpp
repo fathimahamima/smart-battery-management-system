@@ -1,6 +1,7 @@
 #include "display.h"
 #include "battery.h"
 #include "safety.h"
+#include "runtime.h"
 
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
@@ -186,7 +187,26 @@ if (safetyState != SAFE) {
   case DIAGNOSTIC_SCREEN:
 
   lcd.setCursor(0, 0);
-  lcd.print("Mode:NORMAL");
+  lcd.print("Mode:");
+
+switch (runtimeMode) {
+
+  case NORMAL:
+    lcd.print("NORMAL");
+    break;
+
+  case DEGRADED:
+    lcd.print("DEGRADED");
+    break;
+
+  case FAILSAFE:
+    lcd.print("FAILSAFE");
+    break;
+
+  case SHUTDOWN:
+    lcd.print("SHUTDOWN");
+    break;
+}
 
   lcd.setCursor(0, 1);
 

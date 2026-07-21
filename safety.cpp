@@ -124,6 +124,7 @@ else {
       tone(BUZZER_PIN, 1500);
 
       Serial.println("WARNING: Sensor Fault");
+      break;
     case RAPID_FLUCTUATION:
       digitalWrite(RELAY_PIN, LOW);
       digitalWrite(LED_PIN, HIGH);
